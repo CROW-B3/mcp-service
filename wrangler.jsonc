@@ -37,5 +37,20 @@
         }
       ]
     },
+    "local": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "crow-mcp-service-db-local",
+          "database_id": "0c21b94e-c596-4014-90e5-928ab31344a6"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_BUCKET",
+          "bucket_name": "crow-mcp-service-store-local"
+        }
+      ]
+    },
   },
 }
