@@ -8,7 +8,34 @@
     "enabled": true,
   },
   "placement": { "mode": "smart" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "crow-mcp-service-db",
+      "database_id": "8ff8a243-ed55-4ddb-8e04-1f99bf4cb93b"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "crow-mcp-service-store"
+    }
+  ],
   "env": {
-    "dev": {},
+    "dev": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "crow-mcp-service-db-dev",
+          "database_id": "2147f34f-90ff-4862-ab68-b28ec4fd9a3b"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_BUCKET",
+          "bucket_name": "crow-mcp-service-store-dev"
+        }
+      ]
+    },
   },
 }
