@@ -9,7 +9,7 @@
 		"test": "vitest",
 		"cf-typegen": "wrangler types",
 		"db:studio": "drizzle-kit studio",
-		"db:studio:prod": "REMOTE=1 drizzle-kit studio"
+		"db:studio:remote": "REMOTE=1 drizzle-kit studio"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.71",
