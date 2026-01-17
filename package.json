@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"deploy": "workers-mcp docgen src/index.ts && wrangler deploy",
-		"dev": "wrangler dev --env local --port 8011",
+		"dev": "wrangler dev --env local --port 8011 --inspector-port 9240",
 		"start": "wrangler dev",
 		"test": "vitest",
 		"cf-typegen": "wrangler types"
