@@ -21,8 +21,14 @@
       "bucket_name": "crow-mcp-service-store"
     }
   ],
+  "routes": [
+    { "pattern": "mcp.crowai.dev", "custom_domain": true }
+  ],
   "env": {
     "dev": {
+      "routes": [
+        { "pattern": "dev.mcp.crowai.dev", "custom_domain": true }
+      ],
       "d1_databases": [
         {
           "binding": "DB",
