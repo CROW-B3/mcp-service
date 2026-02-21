@@ -1,0 +1,7 @@
+services:
+  mcp-service:
+    build: .
+    ports:
+      - '8011:8080'
+    environment:
+      - ENVIRONMENT=local
