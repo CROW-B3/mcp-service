@@ -1,0 +1,35 @@
+meta {
+  name: MCP Search Products
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/mcp
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{apiKey}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+      "name": "crow_search_products",
+      "arguments": {
+        "query": "blue shirt",
+        "organizationId": "{{orgId}}",
+        "mode": "hybrid"
+      }
+    }
+  }
+}
