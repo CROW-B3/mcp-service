@@ -15,6 +15,12 @@ export default class MyWorker extends WorkerEntrypoint<Env> {
 	 * @ignore
 	 **/
 	async fetch(request: Request): Promise<Response> {
+		const url = new URL(request.url);
+		
+		if (url.pathname === '/' && request.method === 'GET') {
+			return Response.json({ status: 'ok', service: 'mcp-service' });
+		}
+		
 		return new ProxyToSelf(this).fetch(request);
 	}
 }
