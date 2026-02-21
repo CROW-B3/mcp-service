@@ -1,0 +1,34 @@
+meta {
+  name: MCP Search Patterns
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/mcp
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{apiKey}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "jsonrpc": "2.0",
+    "id": 5,
+    "method": "tools/call",
+    "params": {
+      "name": "crow_search_patterns",
+      "arguments": {
+        "query": "foot traffic peak hours",
+        "organizationId": "{{orgId}}"
+      }
+    }
+  }
+}
