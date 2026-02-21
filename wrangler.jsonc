@@ -42,7 +42,7 @@
         {
           "binding": "DB",
           "database_name": "crow-mcp-service-db-dev",
-          "database_id": "2147f34f-90ff-4862-ab68-b28ec4fd9a3b"
+          "database_id": "9253f928-dc50-4fd9-bcf0-97d1e1a724ba"
         }
       ],
       "r2_buckets": [
