@@ -4,10 +4,15 @@
   "account_id": "8f0203259905d8923687286c84921e6c",
   "main": "src/index.ts",
   "compatibility_date": "2025-12-17",
+  "compatibility_flags": ["nodejs_compat"],
   "observability": {
     "enabled": true,
   },
   "placement": { "mode": "smart" },
+  "vars": {
+    "ENVIRONMENT": "local",
+    "API_GATEWAY_URL": "http://localhost:8000",
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -26,6 +31,10 @@
   ],
   "env": {
     "dev": {
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "API_GATEWAY_URL": "https://dev.api.crowai.dev",
+      },
       "routes": [
         { "pattern": "dev.mcp.crowai.dev", "custom_domain": true }
       ],
@@ -44,6 +53,10 @@
       ]
     },
     "local": {
+      "vars": {
+        "ENVIRONMENT": "local",
+        "API_GATEWAY_URL": "http://localhost:8000",
+      },
       "d1_databases": [
         {
           "binding": "DB",
