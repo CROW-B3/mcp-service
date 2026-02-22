@@ -7,6 +7,7 @@
 		"dev": "wrangler dev --env local --port 8011 --inspector-port 9240",
 		"dev:docker": "docker compose up --build",
 		"start": "wrangler dev",
+		"typecheck": "tsgo --noEmit",
 		"test": "vitest",
 		"cf-typegen": "wrangler types",
 		"db:studio": "drizzle-kit studio",
@@ -17,6 +18,7 @@
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.71",
 		"@deox/drizzle-d1-utils": "^0.0.1",
+		"@typescript/native-preview": "latest",
 		"drizzle-kit": "^0.31.8",
 		"typescript": "^5.9.3",
 		"vitest": "~3.2.4",
