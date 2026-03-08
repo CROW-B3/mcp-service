@@ -10,15 +10,39 @@ const MCP_SERVER_VERSION = '1.0.0'
 
 async function verifyApiKey(apiKey: string, env: Environment): Promise<string | null> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (env.SERVICE_API_KEY) {
+      headers['X-Service-API-Key'] = env.SERVICE_API_KEY;
+    }
     const response = await fetch(`${env.API_GATEWAY_URL}/api/v1/auth/api-key/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ key: apiKey }),
     })
     if (!response.ok)
       return null
-    const data = (await response.json()) as { key?: { metadata?: { organizationId?: string } } }
-    return data.key?.metadata?.organizationId ?? null
+
+    // Resolve organization from the authenticated user record tied to this API key.
+    // We use the userId from the verified key to look up the user's actual organization —
+    // this prevents an attacker from forging a foreign org UUID via the key's metadata field.
+    const data = (await response.json()) as { key?: { userId?: string } }
+    const userId = data.key?.userId
+    if (!userId)
+      return null
+
+    const userServiceUrl = env.USER_SERVICE_URL ?? `${env.API_GATEWAY_URL}`
+    const userHeaders: Record<string, string> = {}
+    if (env.SERVICE_API_KEY) {
+      userHeaders['X-Service-API-Key'] = env.SERVICE_API_KEY
+    }
+    const userResp = await fetch(`${userServiceUrl}/api/v1/users/by-auth-id/${encodeURIComponent(userId)}`, {
+      headers: userHeaders,
+    })
+    if (!userResp.ok)
+      return null
+
+    const userData = (await userResp.json()) as { organizationId?: string }
+    return userData.organizationId ?? null
   }
   catch {
     return null
@@ -51,7 +75,16 @@ function buildJsonRpcError(
 
 app.get('/', c => c.json({ status: 'ok', service: 'crow-mcp-service' }))
 
-app.get('/mcp', (c) => {
+app.get('/mcp', async (c) => {
+  // Require valid API key even for discovery endpoint to prevent tool schema enumeration
+  const apiKey = extractApiKey(c.req.raw)
+  if (!apiKey) {
+    return c.json(buildJsonRpcError(0, -32600, 'Missing API key. Provide Authorization: Bearer <key> or X-API-Key header.'), 401)
+  }
+  const orgId = await verifyApiKey(apiKey, c.env)
+  if (!orgId) {
+    return c.json(buildJsonRpcError(0, -32600, 'Invalid or unauthorized API key.'), 401)
+  }
   return c.json({
     name: MCP_SERVER_NAME,
     version: MCP_SERVER_VERSION,
@@ -80,6 +113,7 @@ async function handleToolsCall(
   orgId: string,
   env: Environment,
   c: Context<{ Bindings: Environment }>,
+  apiKey: string,
 ): Promise<Response> {
   const callParams = params as { name?: string, arguments?: Record<string, unknown> }
   const toolName = callParams?.name
@@ -93,7 +127,7 @@ async function handleToolsCall(
     return c.json(buildJsonRpcError(id, -32601, `Method not found: unknown tool "${toolName}"`), 404)
 
   try {
-    const result = await executeTool(toolName, toolArgs, orgId, env)
+    const result = await executeTool(toolName, toolArgs, orgId, env, apiKey)
     return c.json(
       buildJsonRpcSuccess(id, {
         content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -101,15 +135,16 @@ async function handleToolsCall(
     )
   }
   catch (err) {
-    const message = err instanceof Error ? err.message : 'Tool execution failed'
-    return c.json(buildJsonRpcError(id, -32603, `Internal error: ${message}`), 500)
+    console.error('[mcp] tool execution error:', err instanceof Error ? err.message : String(err))
+    return c.json(buildJsonRpcError(id, -32603, 'Tool execution failed'), 500)
   }
 }
 
 app.post('/mcp', async (c) => {
+  const apiKey = extractApiKey(c.req.raw)
   const orgId = await resolveOrganizationId(c.req.raw, c.env)
 
-  if (!orgId && extractApiKey(c.req.raw) === null) {
+  if (!orgId && apiKey === null) {
     return c.json(
       buildJsonRpcError(0, -32600, 'Missing API key. Provide Authorization: Bearer <key> or X-API-Key header.'),
       401,
@@ -150,7 +185,7 @@ app.post('/mcp', async (c) => {
       return c.json(buildJsonRpcSuccess(id, { tools: TOOLS }))
 
     case 'tools/call':
-      return handleToolsCall(id, params, orgId, c.env, c)
+      return handleToolsCall(id, params, orgId, c.env, c, apiKey ?? '')
 
     default:
       return c.json(buildJsonRpcError(id, -32601, `Method not found: ${method}`), 404)

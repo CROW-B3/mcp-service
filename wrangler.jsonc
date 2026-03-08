@@ -34,6 +34,7 @@
       "vars": {
         "ENVIRONMENT": "dev",
         "API_GATEWAY_URL": "https://dev.api.crowai.dev",
+        "USER_SERVICE_URL": "https://dev.internal.users.crowai.dev",
       },
       "routes": [
         { "pattern": "dev.mcp.crowai.dev", "custom_domain": true }
