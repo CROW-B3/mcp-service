@@ -3,9 +3,8 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"deploy": "workers-mcp docgen src/index.ts && wrangler deploy",
+		"deploy": "wrangler deploy",
 		"dev": "wrangler dev --env local --port 8011 --inspector-port 9240",
-		"dev:docker": "docker compose up --build",
 		"start": "wrangler dev",
 		"test": "vitest",
 		"cf-typegen": "wrangler types",
@@ -24,6 +23,6 @@
 	},
 	"dependencies": {
 		"drizzle-orm": "^0.45.1",
-		"workers-mcp": "^0.0.13"
+		"hono": "^4.7.4"
 	}
 }
