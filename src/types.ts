@@ -1,6 +1,8 @@
 export interface Environment {
   API_GATEWAY_URL: string
   ENVIRONMENT: string
+  SERVICE_API_KEY?: string
+  USER_SERVICE_URL?: string
   DB: D1Database
   R2_BUCKET: R2Bucket
 }
