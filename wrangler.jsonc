@@ -10,7 +10,7 @@
   },
   "placement": { "mode": "smart" },
   "vars": {
-    "ENVIRONMENT": "local",
+    "ENVIRONMENT": "prod",
     "API_GATEWAY_URL": "http://localhost:8000",
   },
   "d1_databases": [
