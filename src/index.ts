@@ -22,18 +22,14 @@ async function verifyApiKey(apiKey: string, env: Environment): Promise<string | 
     if (!response.ok)
       return null
 
-    // Auth service returns flat format: { token, organizationId, userId }
-    // (Better-auth nested format { key: { userId, metadata } } is also supported as fallback)
     const data = (await response.json()) as {
       organizationId?: string | null;
       userId?: string | null;
       key?: { userId?: string; metadata?: { organizationId?: string } };
     }
 
-    // If the auth service already resolved the org from metadata, use it directly.
     if (data.organizationId) return data.organizationId
 
-    // Otherwise resolve via userId → user service
     const userId = data.userId ?? data.key?.userId
     if (!userId)
       return null
@@ -84,7 +80,6 @@ function buildJsonRpcError(
 app.get('/', c => c.json({ status: 'ok', service: 'crow-mcp-service' }))
 
 app.get('/mcp', async (c) => {
-  // Require valid API key even for discovery endpoint to prevent tool schema enumeration
   const apiKey = extractApiKey(c.req.raw)
   if (!apiKey) {
     return c.json(buildJsonRpcError(0, -32600, 'Missing API key. Provide Authorization: Bearer <key> or X-API-Key header.'), 401)
