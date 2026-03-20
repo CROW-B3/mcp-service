@@ -11,8 +11,8 @@ const MCP_SERVER_VERSION = '1.0.0'
 async function verifyApiKey(apiKey: string, env: Environment): Promise<string | null> {
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (env.SERVICE_API_KEY) {
-      headers['X-Service-API-Key'] = env.SERVICE_API_KEY;
+    if (env.INTERNAL_GATEWAY_KEY) {
+      headers['X-Internal-Key'] = env.INTERNAL_GATEWAY_KEY;
     }
     const response = await fetch(`${env.API_GATEWAY_URL}/api/v1/auth/api-key/verify`, {
       method: 'POST',
@@ -22,18 +22,26 @@ async function verifyApiKey(apiKey: string, env: Environment): Promise<string | 
     if (!response.ok)
       return null
 
-    // Resolve organization from the authenticated user record tied to this API key.
-    // We use the userId from the verified key to look up the user's actual organization —
-    // this prevents an attacker from forging a foreign org UUID via the key's metadata field.
-    const data = (await response.json()) as { key?: { userId?: string } }
-    const userId = data.key?.userId
+    // Auth service returns flat format: { token, organizationId, userId }
+    // (Better-auth nested format { key: { userId, metadata } } is also supported as fallback)
+    const data = (await response.json()) as {
+      organizationId?: string | null;
+      userId?: string | null;
+      key?: { userId?: string; metadata?: { organizationId?: string } };
+    }
+
+    // If the auth service already resolved the org from metadata, use it directly.
+    if (data.organizationId) return data.organizationId
+
+    // Otherwise resolve via userId → user service
+    const userId = data.userId ?? data.key?.userId
     if (!userId)
       return null
 
     const userServiceUrl = env.USER_SERVICE_URL ?? `${env.API_GATEWAY_URL}`
     const userHeaders: Record<string, string> = {}
-    if (env.SERVICE_API_KEY) {
-      userHeaders['X-Service-API-Key'] = env.SERVICE_API_KEY
+    if (env.INTERNAL_GATEWAY_KEY) {
+      userHeaders['X-Internal-Key'] = env.INTERNAL_GATEWAY_KEY
     }
     const userResp = await fetch(`${userServiceUrl}/api/v1/users/by-auth-id/${encodeURIComponent(userId)}`, {
       headers: userHeaders,
