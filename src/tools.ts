@@ -113,7 +113,6 @@ const VALID_SEARCH_MODES = new Set(['semantic', 'fts', 'hybrid'])
 const VALID_SOURCE_TYPES = new Set(['web', 'cctv', 'social'])
 const VALID_PERIODS = new Set(['daily', 'weekly', 'monthly', 'yearly'])
 const MAX_QUERY_LENGTH = 512
-// productId must be a simple UUID or slug — blocks path traversal
 const PRODUCT_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/
 
 async function executeSearchProducts(
@@ -186,7 +185,6 @@ async function executeGetProductAiDescriptions(
   if (!PRODUCT_ID_PATTERN.test(productId)) {
     throw new Error('Invalid productId format')
   }
-  // Include organizationId so the product service can enforce org-scoping
   const url = new URL(`${baseUrl}/api/v1/products/${encodeURIComponent(productId)}/ai-descriptions`)
   url.searchParams.set('organizationId', orgId)
   return fetchJson(url, apiKey, internalKey)
