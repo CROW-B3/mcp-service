@@ -12,6 +12,7 @@
   "vars": {
     "ENVIRONMENT": "prod",
     "API_GATEWAY_URL": "http://localhost:8000",
+    "GEMINI_API_KEY": "AIzaSyDL_4B_DDmMMEXZSuQSgf_ptjdj55rOSXo",
   },
   "d1_databases": [
     {
@@ -35,6 +36,7 @@
         "ENVIRONMENT": "dev",
         "API_GATEWAY_URL": "https://dev.api.crowai.dev",
         "USER_SERVICE_URL": "https://dev.internal.users.crowai.dev",
+        "GEMINI_API_KEY": "AIzaSyDL_4B_DDmMMEXZSuQSgf_ptjdj55rOSXo",
       },
       "routes": [
         { "pattern": "dev.mcp.crowai.dev", "custom_domain": true }
@@ -57,6 +59,7 @@
       "vars": {
         "ENVIRONMENT": "local",
         "API_GATEWAY_URL": "http://localhost:8000",
+        "GEMINI_API_KEY": "AIzaSyDL_4B_DDmMMEXZSuQSgf_ptjdj55rOSXo",
       },
       "d1_databases": [
         {

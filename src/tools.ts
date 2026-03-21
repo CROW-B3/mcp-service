@@ -92,13 +92,17 @@ export const TOOLS: MCPTool[] = [
   },
 ]
 
-async function fetchJson(url: URL | string, apiKey: string): Promise<unknown> {
+async function fetchJson(url: URL | string, apiKey: string, internalKey?: string): Promise<unknown> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`,
+  }
+  if (internalKey) {
+    headers['X-Internal-Key'] = internalKey
+  }
   const response = await fetch(url.toString(), {
     method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
+    headers,
   })
   if (!response.ok)
     throw new Error(`Request failed: ${response.status} ${response.statusText}`)
@@ -109,7 +113,6 @@ const VALID_SEARCH_MODES = new Set(['semantic', 'fts', 'hybrid'])
 const VALID_SOURCE_TYPES = new Set(['web', 'cctv', 'social'])
 const VALID_PERIODS = new Set(['daily', 'weekly', 'monthly', 'yearly'])
 const MAX_QUERY_LENGTH = 512
-// productId must be a simple UUID or slug — blocks path traversal
 const PRODUCT_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/
 
 async function executeSearchProducts(
@@ -117,15 +120,19 @@ async function executeSearchProducts(
   orgId: string,
   baseUrl: string,
   apiKey: string,
+  internalKey?: string,
 ): Promise<unknown> {
   const query = String(args.query ?? '').slice(0, MAX_QUERY_LENGTH)
-  const mode = VALID_SEARCH_MODES.has(args.mode as string) ? (args.mode as string) : 'hybrid'
-  const url = new URL(`${baseUrl}/api/v1/products/search`)
-  url.searchParams.set('q', query)
-  url.searchParams.set('organizationId', orgId)
-  url.searchParams.set('mode', mode)
-  url.searchParams.set('limit', String(Math.min(Number(args.limit ?? 10), 100)))
-  return fetchJson(url, apiKey)
+  const limit = Math.min(Number(args.limit ?? 10), 100)
+  const url = new URL(`${baseUrl}/api/v1/products/organization/${encodeURIComponent(orgId)}`)
+  url.searchParams.set('pageSize', String(limit))
+  if (query) {
+    url.searchParams.set('q', query)
+  }
+  if (args.mode && VALID_SEARCH_MODES.has(args.mode as string)) {
+    url.searchParams.set('mode', args.mode as string)
+  }
+  return fetchJson(url, apiKey, internalKey)
 }
 
 async function executeSearchInteractions(
@@ -133,6 +140,7 @@ async function executeSearchInteractions(
   orgId: string,
   baseUrl: string,
   apiKey: string,
+  internalKey?: string,
 ): Promise<unknown> {
   const url = new URL(`${baseUrl}/api/v1/interactions/organization/${orgId}`)
   if (args.query)
@@ -143,12 +151,12 @@ async function executeSearchInteractions(
     url.searchParams.set('limit', String(Math.min(Number(args.limit), 100)))
   if (args.page)
     url.searchParams.set('page', String(args.page))
-  return fetchJson(url, apiKey)
+  return fetchJson(url, apiKey, internalKey)
 }
 
-async function executeGetInteractionSummary(orgId: string, baseUrl: string, apiKey: string): Promise<unknown> {
+async function executeGetInteractionSummary(orgId: string, baseUrl: string, apiKey: string, internalKey?: string): Promise<unknown> {
   const url = new URL(`${baseUrl}/api/v1/interactions/organization/${orgId}/summary`)
-  return fetchJson(url, apiKey)
+  return fetchJson(url, apiKey, internalKey)
 }
 
 async function executeSearchPatterns(
@@ -156,13 +164,14 @@ async function executeSearchPatterns(
   orgId: string,
   baseUrl: string,
   apiKey: string,
+  internalKey?: string,
 ): Promise<unknown> {
   const url = new URL(`${baseUrl}/api/v1/patterns/organization/${orgId}`)
   if (args.query)
     url.searchParams.set('q', String(args.query).slice(0, MAX_QUERY_LENGTH))
   if (args.period && VALID_PERIODS.has(args.period as string))
     url.searchParams.set('period', args.period as string)
-  return fetchJson(url, apiKey)
+  return fetchJson(url, apiKey, internalKey)
 }
 
 async function executeGetProductAiDescriptions(
@@ -170,15 +179,15 @@ async function executeGetProductAiDescriptions(
   orgId: string,
   baseUrl: string,
   apiKey: string,
+  internalKey?: string,
 ): Promise<unknown> {
   const productId = String(args.productId ?? '')
   if (!PRODUCT_ID_PATTERN.test(productId)) {
     throw new Error('Invalid productId format')
   }
-  // Include organizationId so the product service can enforce org-scoping
   const url = new URL(`${baseUrl}/api/v1/products/${encodeURIComponent(productId)}/ai-descriptions`)
   url.searchParams.set('organizationId', orgId)
-  return fetchJson(url, apiKey)
+  return fetchJson(url, apiKey, internalKey)
 }
 
 export async function executeTool(
@@ -189,18 +198,19 @@ export async function executeTool(
   apiKey: string,
 ): Promise<unknown> {
   const baseUrl = env.API_GATEWAY_URL
+  const internalKey = env.INTERNAL_GATEWAY_KEY
 
   switch (toolName) {
     case 'crow_search_products':
-      return executeSearchProducts(args, orgId, baseUrl, apiKey)
+      return executeSearchProducts(args, orgId, baseUrl, apiKey, internalKey)
     case 'crow_search_interactions':
-      return executeSearchInteractions(args, orgId, baseUrl, apiKey)
+      return executeSearchInteractions(args, orgId, baseUrl, apiKey, internalKey)
     case 'crow_get_interaction_summary':
-      return executeGetInteractionSummary(orgId, baseUrl, apiKey)
+      return executeGetInteractionSummary(orgId, baseUrl, apiKey, internalKey)
     case 'crow_search_patterns':
-      return executeSearchPatterns(args, orgId, baseUrl, apiKey)
+      return executeSearchPatterns(args, orgId, baseUrl, apiKey, internalKey)
     case 'crow_get_product_ai_descriptions':
-      return executeGetProductAiDescriptions(args, orgId, baseUrl, apiKey)
+      return executeGetProductAiDescriptions(args, orgId, baseUrl, apiKey, internalKey)
     default:
       throw new Error(`Unknown tool: ${toolName}`)
   }
