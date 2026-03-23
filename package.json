@@ -17,15 +17,15 @@
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.71",
 		"@deox/drizzle-d1-utils": "^0.0.1",
+		"@hono/zod-openapi": "^1.2.3",
 		"drizzle-kit": "^0.31.8",
 		"typescript": "^5.9.3",
 		"vitest": "~3.2.4",
-		"wrangler": "^4.57.0"
+		"wrangler": "^4.57.0",
+		"zod": "^4.3.6"
 	},
 	"dependencies": {
-		"@hono/zod-openapi": "^1.2.0",
 		"drizzle-orm": "^0.45.1",
-		"hono": "^4.7.4",
-		"zod": "^4.3.5"
+		"hono": "^4.7.4"
 	}
 }
