@@ -1,9 +1,9 @@
-import { Hono } from 'hono'
+import { OpenAPIHono } from '@hono/zod-openapi'
 import type { Context } from 'hono'
 import type { Environment, MCPRequest, MCPResponse } from './types'
 import { TOOLS, executeTool } from './tools'
 
-const app = new Hono<{ Bindings: Environment }>()
+const app = new OpenAPIHono<{ Bindings: Environment }>()
 
 const MCP_SERVER_NAME = 'crow-mcp-server'
 const MCP_SERVER_VERSION = '1.0.0'
@@ -193,6 +193,14 @@ app.post('/mcp', async (c) => {
     default:
       return c.json(buildJsonRpcError(id, -32601, `Method not found: ${method}`), 404)
   }
+})
+
+app.doc('/docs', {
+  openapi: '3.0.0',
+  info: {
+    version: '1.0.0',
+    title: 'CROW MCP Service',
+  },
 })
 
 export default app
