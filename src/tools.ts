@@ -90,6 +90,24 @@ export const TOOLS: MCPTool[] = [
       required: ['productId'],
     },
   },
+  {
+    name: 'crow_search_org_context',
+    description: 'Search organization context including company overview, products summary, target market, and general knowledge base via QnA vectorize',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Search query about the organization context',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum number of results to return',
+        },
+      },
+      required: ['query'],
+    },
+  },
 ]
 
 async function fetchJson(url: URL | string, apiKey: string, internalKey?: string): Promise<unknown> {
@@ -190,6 +208,23 @@ async function executeGetProductAiDescriptions(
   return fetchJson(url, apiKey, internalKey)
 }
 
+async function executeSearchOrgContext(
+  args: Record<string, unknown>,
+  orgId: string,
+  baseUrl: string,
+  apiKey: string,
+  internalKey?: string,
+): Promise<unknown> {
+  const query = String(args.query ?? '').slice(0, MAX_QUERY_LENGTH)
+  if (!query) throw new Error('query is required')
+  const limit = Math.min(Number(args.limit ?? 10), 50)
+  const url = new URL(`${baseUrl}/api/v1/qna/search`)
+  url.searchParams.set('q', query)
+  url.searchParams.set('organizationId', orgId)
+  url.searchParams.set('topK', String(limit))
+  return fetchJson(url, apiKey, internalKey)
+}
+
 export async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
@@ -211,6 +246,8 @@ export async function executeTool(
       return executeSearchPatterns(args, orgId, baseUrl, apiKey, internalKey)
     case 'crow_get_product_ai_descriptions':
       return executeGetProductAiDescriptions(args, orgId, baseUrl, apiKey, internalKey)
+    case 'crow_search_org_context':
+      return executeSearchOrgContext(args, orgId, baseUrl, apiKey, internalKey)
     default:
       throw new Error(`Unknown tool: ${toolName}`)
   }
