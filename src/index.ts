@@ -78,6 +78,7 @@ function buildJsonRpcError(
 }
 
 app.get('/', c => c.json({ status: 'ok', service: 'crow-mcp-service' }))
+app.get('/health', c => c.json({ status: 'healthy', service: 'crow-mcp-service', timestamp: new Date().toISOString() }))
 
 app.get('/mcp', async (c) => {
   const apiKey = extractApiKey(c.req.raw)
