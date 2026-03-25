@@ -110,13 +110,16 @@ export const TOOLS: MCPTool[] = [
   },
 ]
 
-async function fetchJson(url: URL | string, apiKey: string, internalKey?: string): Promise<unknown> {
+async function fetchJson(url: URL | string, apiKey: string, internalKey?: string, orgId?: string): Promise<unknown> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${apiKey}`,
   }
   if (internalKey) {
     headers['X-Internal-Key'] = internalKey
+  }
+  if (orgId) {
+    headers['X-Organization-Id'] = orgId
   }
   const response = await fetch(url.toString(), {
     method: 'GET',
@@ -169,12 +172,12 @@ async function executeSearchInteractions(
     url.searchParams.set('limit', String(Math.min(Number(args.limit), 100)))
   if (args.page)
     url.searchParams.set('page', String(args.page))
-  return fetchJson(url, apiKey, internalKey)
+  return fetchJson(url, apiKey, internalKey, orgId)
 }
 
 async function executeGetInteractionSummary(orgId: string, baseUrl: string, apiKey: string, internalKey?: string): Promise<unknown> {
   const url = new URL(`${baseUrl}/api/v1/interactions/organization/${orgId}/summary`)
-  return fetchJson(url, apiKey, internalKey)
+  return fetchJson(url, apiKey, internalKey, orgId)
 }
 
 async function executeSearchPatterns(
@@ -186,10 +189,10 @@ async function executeSearchPatterns(
 ): Promise<unknown> {
   const url = new URL(`${baseUrl}/api/v1/patterns/organization/${orgId}`)
   if (args.query)
-    url.searchParams.set('q', String(args.query).slice(0, MAX_QUERY_LENGTH))
+    url.searchParams.set('query', String(args.query).slice(0, MAX_QUERY_LENGTH))
   if (args.period && VALID_PERIODS.has(args.period as string))
     url.searchParams.set('period', args.period as string)
-  return fetchJson(url, apiKey, internalKey)
+  return fetchJson(url, apiKey, internalKey, orgId)
 }
 
 async function executeGetProductAiDescriptions(
